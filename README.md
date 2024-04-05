@@ -16,7 +16,7 @@ Note: This library depends on Raylib. In the future this is planned not to be th
 da_init(&space_stack)
 da_push(&space_stack, ROOT_RECT); /* Define ROOT_RECT to be anything. The dimensions and
                                      position will be the dimensions and position of
-                                     the ui. */
+                                     the UI. */
 reg_font = FOO;
 tite_font = BAR;
 ```
