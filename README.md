@@ -31,10 +31,10 @@ ui_do_panel(0.5, 0.5, 0.8, 0.5);
     WHITE
   );
 
-  if (ui_do_button_ui_down("New Game", 0.1, 0.4, 0.2)) {
+  if (ui_do_button_down("New Game", 0.1, 0.4, 0.2)) {
     // ...
   }
-  if (ui_do_button_ui_down("Exit", 0.02, 0.4, 0.2)) {
+  if (ui_do_button_down("Exit", 0.02, 0.4, 0.2)) {
     // ...
   }
 
