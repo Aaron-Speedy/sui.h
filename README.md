@@ -13,20 +13,29 @@ Note: This library depends on Raylib. In the future this is planned not to be th
 ```
 
 ```c
-do_panel(0.5, 0.5, 0.8, 0.5);
+da_init(&space_stack)
+da_push(&space_stack, ROOT_RECT); /* Define ROOT_RECT to be anything. The dimensions and
+                                     position will be the dimensions and position of
+                                     the ui. */
+reg_font = FOO;
+tite_font = BAR;
+```
 
-  do_text(
+```c
+ui_do_panel(0.5, 0.5, 0.8, 0.5);
+
+  ui_do_text(
     "You won! ... or maybe not",
     0.5, 0.15,
     title_font,
     WHITE
   );
 
-  if (do_button_down("New Game", 0.1, 0.4, 0.2)) {
-    mode = MODE_SRC;
+  if (ui_do_button_ui_down("New Game", 0.1, 0.4, 0.2)) {
+    // ...
   }
-  if (do_button_down("Exit", 0.02, 0.4, 0.2)) {
-    mode = MODE_SRC;
+  if (ui_do_button_ui_down("Exit", 0.02, 0.4, 0.2)) {
+    // ...
   }
 
 da_pop(&space_stack);

@@ -33,20 +33,44 @@ void ui_do_panel(float x, float y, float width, float height);
 
 #ifdef SUI_IMPL
 
+#define da_push(xs, x) \
+  do { \
+    if ((xs)->count >= (xs)->cap) { \
+      if ((xs)->cap == 0) (xs)->cap = 256; \
+      else (xs)->cap *= 2; \
+      (xs)->items = realloc((xs)->items, (xs)->cap*sizeof(*(xs)->items)); \
+    } \
+ \
+    (xs)->items[(xs)->count++] = (x); \
+  } while (0)
+
+#define da_pop(xs) \
+  do { \
+    assert ((xs)->count > 0); \
+    (xs)->count -= 1; \
+  } while (0)
+
+#define da_last(xs) (assert((xs)->count > 0), (xs)->items[(xs)->count - 1])
+
+#define da_init(xs) \
+do { \
+  (xs)->items = malloc((xs)->cap * sizeof((xs)->items[0])); \
+} while (0);
+
 Font reg_font;
 Font title_font;
 
 struct {
   int count, cap;
   Rect *items;
-} space_stack = {
+} ui_ui_space_stack = {
   .cap = 100,
 };
 
 Rect last_do = {0};
 
 Vec2 _place_rel(float x, float y, Vec2 size) {
-  Rect space = da_last(&space_stack);
+  Rect space = da_last(&ui_space_stack);
   return (Vec2) {
     .x = space.pos.x + x * space.size.x - size.x/2,
     .y = space.pos.y + y * space.size.y - size.y/2,
@@ -56,8 +80,8 @@ Vec2 _place_rel(float x, float y, Vec2 size) {
 Rect _rel_to_abs(float x, float y, float width, float height) {
   Rect rect = {
     .size = {
-      .x = width * da_last(&space_stack).size.x,
-      .y = height * da_last(&space_stack).size.y,
+      .x = width * da_last(&ui_space_stack).size.x,
+      .y = height * da_last(&ui_space_stack).size.y,
     },
   };
   rect.pos = _place_rel(x, y, rect.size);
@@ -65,7 +89,7 @@ Rect _rel_to_abs(float x, float y, float width, float height) {
 }
 
 Rect _abs_to_rel(Rect *abs) {
-  Rect space = da_last(&space_stack);
+  Rect space = da_last(&ui_space_stack);
 
   Rect rect = {
     .size = {
@@ -133,11 +157,11 @@ bool ui_do_button(char *text, float x, float y, float width, float height) {
 
   DrawRectangleRounded(_rect_to_rectangle(&rect), 0.1, 20, button_color);
 
-  da_push(&space_stack, rect);
+  da_push(&ui_space_stack, rect);
 
     ui_do_text(text, 0.5, 0.5, reg_font, text_color);
 
-  da_pop(&space_stack);
+  da_pop(&ui_space_stack);
 
   last_do = _abs_to_rel(&rect);
 
@@ -156,7 +180,7 @@ bool ui_do_button_down(char *text, float spacing, float width, float height) {
 void ui_do_panel(float x, float y, float width, float height) {
   Rect rect = _rel_to_abs(x, y, width, height);
 
-  da_push(&space_stack, rect);
+  da_push(&ui_space_stack, rect);
 
   Color panel_color = { 20, 20, 20, 255, };
 
