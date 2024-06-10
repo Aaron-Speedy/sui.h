@@ -8,7 +8,7 @@ Note: This library depends on Raylib. In the future this is planned not to be th
 
 ## Usage
 ```c
-#define UI_IMPL
+#define SUI_IMPL
 #include "sui.h"
 ```
 
