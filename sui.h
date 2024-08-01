@@ -1,194 +1,214 @@
-/* sui.h - v0.0001  - public domain - no warranty implied; use at your own risk
+/* sui.h - v0.1
+  This is a single header file for doing immediate mode GUIs.
 
-  This is a single header file for doing immediate mode guis.
-
-  This software is in the public domain. Where that dedication is not
-  recognized, you are granted a perpetual, irrevocable license to copy,
-  distribute, and modify this file as you see fit.
+  See end of file for licensing.
 */
 
-#ifndef UI_H
-#define UI_H
+#ifndef SUI_H
+#define SUI_H
 
-#define Vec2 Vector2
+#include <raylib.h>
+#include <assert.h>
+#include <stdlib.h>
 
 typedef struct {
-  Vec2 pos;
-  Vec2 size;
-} Rect;
+  Vector2 pos;
+  Vector2 size;
+} SUI_Rect;
 
-Vec2 _place_rel(float x, float y, Vec2 size);
-Rect _rel_to_abs(float x, float y, float width, float height);
-Rect _abs_to_rel(Rect *rect);
+typedef struct {
+  int count, cap;
+  SUI_Rect *items;
+  SUI_Rect last_do;
+  Font reg_font;
+  Font title_font;
+} SUI_Ctx;
 
-Rectangle _rect_to_rectangle(Rect *rect);
+void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, Font f, Color c);
+bool sui_do_button(SUI_Ctx *ctx, char *t, float x, float y, float w, float h);
+bool sui_do_button_next(SUI_Ctx *ctx, char *t, float spacing, float w, float h);
+void sui_do_panel(SUI_Ctx *ctx, float x, float y, float w, float h);
 
-bool _mouse_in(float x, float y, float width, float height);
-bool _mouse_in_rec(Rect *rect);
+void sui_ctx_init(SUI_Ctx *ctx);
+void sui_ctx_push(SUI_Ctx *ctx, SUI_Rect rect);
+SUI_Rect *sui_ctx_pop(SUI_Ctx *ctx);
+SUI_Rect *sui_ctx_last(SUI_Ctx *ctx);
 
-void ui_do_text(char *text, float x, float y, Font font, Color color);
-bool ui_do_button(char *text, float x, float y, float width, float height);
-bool ui_do_button_down(char *text, float spacing, float width, float height);
-void ui_do_panel(float x, float y, float width, float height);
+// Internal, but you can use these externally if you want
+Vector2 sui_place_rel(SUI_Ctx *ctx, float x, float y, Vector2 size);
+SUI_Rect sui_rel_to_abs(SUI_Ctx *ctx, float x, float y, float w, float h);
+SUI_Rect sui_abs_to_rel(SUI_Ctx * ctx, SUI_Rect rect);
+Rectangle sui_rect_to_rectangle(SUI_Rect rect);
+bool sui_mouse_in(float x, float y, float w, float h);
+bool sui_mouse_in_rec(SUI_Rect rect);
 
 #ifdef SUI_IMPL
 
-#define da_push(xs, x) \
-  do { \
-    if ((xs)->count >= (xs)->cap) { \
-      if ((xs)->cap == 0) (xs)->cap = 256; \
-      else (xs)->cap *= 2; \
-      (xs)->items = realloc((xs)->items, (xs)->cap*sizeof(*(xs)->items)); \
-    } \
- \
-    (xs)->items[(xs)->count++] = (x); \
-  } while (0)
+void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, Font f, Color c) {
+  SUI_Rect rect = { .size = MeasureTextEx(f, t, f.baseSize, 1) };
+  rect.pos = sui_place_rel(ctx, x, y, rect.size);
 
-#define da_pop(xs) \
-  do { \
-    assert ((xs)->count > 0); \
-    (xs)->count -= 1; \
-  } while (0)
+  DrawTextEx(f, t, rect.pos, f.baseSize, 1, c);
 
-#define da_last(xs) (assert((xs)->count > 0), (xs)->items[(xs)->count - 1])
-
-#define da_init(xs) \
-do { \
-  (xs)->items = malloc((xs)->cap * sizeof((xs)->items[0])); \
-} while (0);
-
-Font reg_font;
-Font title_font;
-
-struct {
-  int count, cap;
-  Rect *items;
-} ui_ui_space_stack = {
-  .cap = 100,
-};
-
-Rect last_do = {0};
-
-Vec2 _place_rel(float x, float y, Vec2 size) {
-  Rect space = da_last(&ui_space_stack);
-  return (Vec2) {
-    .x = space.pos.x + x * space.size.x - size.x/2,
-    .y = space.pos.y + y * space.size.y - size.y/2,
-  };
+  ctx->last_do = sui_abs_to_rel(ctx, rect);
 }
 
-Rect _rel_to_abs(float x, float y, float width, float height) {
-  Rect rect = {
-    .size = {
-      .x = width * da_last(&ui_space_stack).size.x,
-      .y = height * da_last(&ui_space_stack).size.y,
-    },
-  };
-  rect.pos = _place_rel(x, y, rect.size);
-  return rect;
-}
-
-Rect _abs_to_rel(Rect *abs) {
-  Rect space = da_last(&ui_space_stack);
-
-  Rect rect = {
-    .size = {
-      .x = abs->size.x / space.size.x,
-      .y = abs->size.y / space.size.y,
-    },
-  };
-
-  rect.pos.x = (abs->pos.x - space.pos.x + abs->size.x/2) / space.size.x;
-  rect.pos.y = (abs->pos.y - space.pos.y + abs->size.y/2) / space.size.y;
-
-  return rect;
-}
-
-Rectangle _rect_to_rectangle(Rect *rect) {
-  return (Rectangle) {
-    .x = rect->pos.x,
-    .y = rect->pos.y,
-    .width = rect->size.x,
-    .height = rect->size.y,
-  };
-}
-
-bool _mouse_in(float x, float y, float width, float height) {
-  Vec2 v = GetMousePosition();
-  if (v.x < x) return 0;
-  if (v.y < y) return 0;
-  if (v.x > x + width) return 0;
-  if (v.y > y + height) return 0;
-  return 1;
-}
-
-bool _mouse_in_rec(Rect *rect) {
-  return _mouse_in(rect->pos.x, rect->pos.y, rect->size.x, rect->size.y);
-}
-
-void ui_do_text(char *text, float x, float y, Font font, Color color) {
-  Rect rect = { .size = MeasureTextEx(font, text, font.baseSize, 1) };
-  rect.pos = _place_rel(x, y, rect.size);
-
-  DrawTextEx(
-    font,
-    text,
-    rect.pos,
-    font.baseSize,
-    1,
-    color
-  );
-
-  last_do = _abs_to_rel(&rect);
-}
-
-bool ui_do_button(char *text, float x, float y, float width, float height) {
-  Rect rect = _rel_to_abs(x, y, width, height);
+bool sui_do_button(SUI_Ctx *ctx, char *t, float x, float y, float w, float h) {
+  SUI_Rect rect = sui_rel_to_abs(ctx, x, y, w, h);
 
   Color button_color = WHITE;
-  Color text_color = BLACK;
+  Color text_color = (Color) { 20, 62, 128, 255, };
 
-  if (_mouse_in_rec(&rect)) {
+  if (sui_mouse_in_rec(rect)) {
     float factor = 0.75;
     button_color.r *= factor;
     button_color.g *= factor;
     button_color.b *= factor;
   }
 
-  DrawRectangleRounded(_rect_to_rectangle(&rect), 0.1, 20, button_color);
+  DrawRectangleRec(sui_rect_to_rectangle(rect), button_color);
 
-  da_push(&ui_space_stack, rect);
+  sui_ctx_push(ctx, rect);
+  {
+    sui_do_text(ctx, t, 0.5, 0.5, ctx->reg_font, text_color);
+  }
+  sui_ctx_pop(ctx);
 
-    ui_do_text(text, 0.5, 0.5, reg_font, text_color);
+  ctx->last_do = sui_abs_to_rel(ctx, rect);
 
-  da_pop(&ui_space_stack);
-
-  last_do = _abs_to_rel(&rect);
-
-  return _mouse_in_rec(&rect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+  return sui_mouse_in_rec(rect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 }
 
-bool ui_do_button_down(char *text, float spacing, float width, float height) {
-  return ui_do_button(
-    text,
-    last_do.pos.x,
-    last_do.pos.y + last_do.size.y + spacing,
-    width, height
+bool sui_do_button_next(SUI_Ctx *ctx, char *t, float spacing, float w, float h) {
+  return sui_do_button(
+    ctx,
+    t,
+    ctx->last_do.pos.x,
+    ctx->last_do.pos.y + ctx->last_do.size.y + spacing,
+    w, h
   );
 }
 
-void ui_do_panel(float x, float y, float width, float height) {
-  Rect rect = _rel_to_abs(x, y, width, height);
+void sui_do_panel(SUI_Ctx *ctx, float x, float y, float w, float h) {
+  SUI_Rect rect = sui_rel_to_abs(ctx, x, y, w, h);
+  sui_ctx_push(ctx, rect);
 
-  da_push(&ui_space_stack, rect);
+  Color panel_color = { 20, 62, 128, 255, };
+  DrawRectangleRec(sui_rect_to_rectangle(rect), panel_color);
 
-  Color panel_color = { 20, 20, 20, 255, };
+  ctx->last_do = sui_abs_to_rel(ctx, rect);
+}
 
-  DrawRectangleRounded(_rect_to_rectangle(&rect), 0.1, 20, panel_color);
+void sui_ctx_init(SUI_Ctx *ctx) {
+  assert(ctx->items == NULL);
 
-  last_do = _abs_to_rel(&rect);
+  if (ctx->cap <= 0) ctx->cap = 256;
+  ctx->items = malloc(ctx->cap * sizeof(ctx->items[0]));
+}
+
+void sui_ctx_push(SUI_Ctx *ctx, SUI_Rect rect) {
+  assert(ctx->cap > 0);
+  assert(ctx->count >= 0);
+  assert(ctx->items != NULL);
+
+  if (ctx->count >= ctx->cap) {
+    ctx->cap *= 2;
+    ctx->items = realloc(ctx->items, ctx->cap * sizeof(ctx->items));
+  }
+
+  ctx->items[ctx->count++] = rect;
+}
+
+SUI_Rect *sui_ctx_pop(SUI_Ctx *ctx) {
+  assert(ctx->count > 0);
+  assert(ctx->items != NULL);
+
+  ctx->count -= 1;
+  return &ctx->items[ctx->count];
+}
+
+SUI_Rect *sui_ctx_last(SUI_Ctx *ctx) {
+  assert(ctx->count > 0);
+  assert(ctx->items != NULL);
+  return &ctx->items[ctx->count - 1];
+}
+
+Vector2 sui_place_rel(SUI_Ctx *ctx, float x, float y, Vector2 size) {
+  SUI_Rect space = *sui_ctx_last(ctx);
+  return (Vector2) {
+    .x = space.pos.x + x * space.size.x - size.x/2,
+    .y = space.pos.y + y * space.size.y - size.y/2,
+  };
+}
+
+SUI_Rect sui_rel_to_abs(SUI_Ctx *ctx, float x, float y, float w, float h) {
+  SUI_Rect rect = {
+    .size = {
+      .x = w * sui_ctx_last(ctx)->size.x,
+      .y = h * sui_ctx_last(ctx)->size.y,
+    },
+  };
+  rect.pos = sui_place_rel(ctx, x, y, rect.size);
+  return rect;
+}
+
+SUI_Rect sui_abs_to_rel(SUI_Ctx *ctx, SUI_Rect abs) {
+  SUI_Rect space = *sui_ctx_last(ctx);
+
+  SUI_Rect rect = {
+    .size = {
+      .x = abs.size.x / space.size.x,
+      .y = abs.size.y / space.size.y,
+    },
+  };
+
+  rect.pos.x = (abs.pos.x - space.pos.x + abs.size.x/2) / space.size.x;
+  rect.pos.y = (abs.pos.y - space.pos.y + abs.size.y/2) / space.size.y;
+
+  return rect;
+}
+
+Rectangle sui_rect_to_rectangle(SUI_Rect rect) {
+  return (Rectangle) {
+    .x = rect.pos.x,
+    .y = rect.pos.y,
+    .width = rect.size.x,
+    .height = rect.size.y,
+  };
+}
+
+bool sui_mouse_in(float x, float y, float w, float h) {
+  Vector2 v = GetMousePosition();
+  if (v.x < x) return 0;
+  if (v.y < y) return 0;
+  if (v.x > x + w) return 0;
+  if (v.y > y + h) return 0;
+  return 1;
+}
+
+bool sui_mouse_in_rec(SUI_Rect rect) {
+  return sui_mouse_in(rect.pos.x, rect.pos.y, rect.size.x, rect.size.y);
 }
 
 #endif
-
+#undef SUI_IMPL
 #endif
+
+/*
+MIT No Attribution
+
+Copyright 2024 Aaron Speedy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
