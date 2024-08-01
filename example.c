@@ -4,23 +4,8 @@
 #define SUI_IMPL
 #include "sui.h"
 
-#ifdef __unix__
-#include <unistd.h>
-int usleep(int usec);
-#endif
-
 int main() {
-  {
-    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE);
-    InitWindow(100, 100, "ui");
-    SetTargetFPS(60);
-
-    int monitor = GetCurrentMonitor();
-    int w = 0.8 * GetMonitorWidth(monitor),
-        h = 0.8 * GetMonitorHeight(monitor);
-    SetWindowSize(w, h);
-  }
-
+  sui_init("example", 0.8, 0.8, 60);
   SUI_Ctx ctx = {0};
   sui_ctx_init(&ctx);
 

@@ -11,6 +11,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#ifdef __unix__
+#include <unistd.h>
+int usleep(int usec);
+#endif
+
 typedef struct {
   Vector2 pos;
   Vector2 size;
@@ -29,6 +34,9 @@ typedef struct {
   SUI_Font reg_font;
   SUI_Font title_font;
 } SUI_Ctx;
+
+// Width and height are relative to monitor
+void sui_init(char *title, float w, float h, int target_fps);
 
 void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, SUI_Font f, Color c);
 bool sui_do_button(SUI_Ctx *ctx, char *t, float x, float y, float w, float h);
@@ -50,6 +58,17 @@ bool sui_mouse_in(float x, float y, float w, float h);
 bool sui_mouse_in_rec(SUI_Rect rect);
 
 #ifdef SUI_IMPL
+
+void sui_init(char *title, float w, float h, int target_fps) {
+  SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE);
+  InitWindow(100, 100, title);
+  SetTargetFPS(target_fps);
+
+  int monitor = GetCurrentMonitor();
+  int width = w * GetMonitorWidth(monitor),
+      height = h * GetMonitorHeight(monitor);
+  SetWindowSize(width, height);
+}
 
 void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, SUI_Font f, Color c) {
   SUI_Rect rect = { .size = MeasureTextEx(f.f, t, f.f.baseSize, 1) };
