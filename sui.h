@@ -152,6 +152,10 @@ void sui_ctx_update(SUI_Ctx *ctx) {
       0.04 * GetRenderWidth(), 0, 0
     );
   }
+
+  #ifdef __unix__
+  usleep(1000000 / 100);
+  #endif
 }
 
 void sui_ctx_push(SUI_Ctx *ctx, SUI_Rect rect) {

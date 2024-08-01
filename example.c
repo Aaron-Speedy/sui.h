@@ -15,7 +15,6 @@ int main() {
     ClearBackground(WHITE);
 
     sui_do_panel(&ctx, 0.5, 0.5, 0.8, 0.5);
-
       sui_do_text(
         &ctx,
         "You won! ... or maybe not",
@@ -28,14 +27,9 @@ int main() {
       if (sui_do_button_next(&ctx, "Exit", 0.02, 0.4, 0.2)) {
         exit(1);
       }
-
     sui_ctx_pop(&ctx);
 
     EndDrawing();
-
-    #ifdef __unix__
-    usleep(1000000 / 100);
-    #endif
   }
 
   return 0;
