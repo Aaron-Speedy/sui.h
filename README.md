@@ -13,6 +13,7 @@ in the future.
 #include "sui.h"
 
 int main() {
+  // title, width, height, target_fps
   sui_init_window("Example Menu", 0.8, 0.8, 60);
   SUI_Ctx ctx = {
     .reg_font = { .path = "recs/Daydream.ttf", .size = 0.03, },
