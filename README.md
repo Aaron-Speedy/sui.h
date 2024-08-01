@@ -7,6 +7,7 @@ sui.h is a simple, do-it-yourself, single-header, immediate mode gui library.
 Note: This library depends on Raylib. This dependency is planned to be removed
     in the future.
 
+## Usage
 See example.c for example usage.
 
 To change functionality or styling, simply edit or add any ui_do functions.
