@@ -36,7 +36,7 @@ typedef struct {
 } SUI_Ctx;
 
 // Width and height are relative to monitor
-void sui_init(char *title, float w, float h, int target_fps);
+void sui_init_window(char *title, float w, float h, int target_fps);
 
 void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, SUI_Font f, Color c);
 bool sui_do_button(SUI_Ctx *ctx, char *t, float x, float y, float w, float h);
@@ -59,7 +59,7 @@ bool sui_mouse_in_rec(SUI_Rect rect);
 
 #ifdef SUI_IMPL
 
-void sui_init(char *title, float w, float h, int target_fps) {
+void sui_init_window(char *title, float w, float h, int target_fps) {
   SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE);
   InitWindow(100, 100, title);
   SetTargetFPS(target_fps);

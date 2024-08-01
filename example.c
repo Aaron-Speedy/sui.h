@@ -5,7 +5,7 @@
 #include "sui.h"
 
 int main() {
-  sui_init("example", 0.8, 0.8, 60);
+  sui_init_window("example", 0.8, 0.8, 60);
   SUI_Ctx ctx = {0};
   sui_ctx_init(&ctx);
 
