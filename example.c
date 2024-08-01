@@ -3,7 +3,16 @@
 
 int main() {
   sui_init_window("example", 0.8, 0.8, 60);
-  SUI_Ctx ctx = {0};
+  SUI_Ctx ctx = {
+    .reg_font = {
+      .path = "recs/Daydream.ttf",
+      .size = 0.03,
+    },
+    .title_font = {
+      .path = "recs/Daydream.ttf",
+      .size = 0.04,
+    }
+  };
   sui_ctx_init(&ctx);
 
   while (!WindowShouldClose()) {
@@ -13,6 +22,7 @@ int main() {
     ClearBackground(WHITE);
 
     sui_do_panel(&ctx, 0.5, 0.5, 0.8, 0.5);
+
       sui_do_text(
         &ctx,
         "You won! ... or maybe not",
@@ -25,6 +35,7 @@ int main() {
       if (sui_do_button_next(&ctx, "Exit", 0.02, 0.4, 0.2)) {
         exit(1);
       }
+
     sui_ctx_pop(&ctx);
 
     EndDrawing();

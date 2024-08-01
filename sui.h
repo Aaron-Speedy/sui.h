@@ -144,12 +144,12 @@ void sui_ctx_update(SUI_Ctx *ctx) {
     UnloadFont(ctx->title_font.f);
 
     ctx->reg_font.f = LoadFontEx(
-      "recs/Daydream.ttf", 
-      0.03 * GetRenderWidth(), 0, 0
+      ctx->reg_font.path, 
+      ctx->reg_font.size * GetRenderWidth(), 0, 0
     ),
     ctx->title_font.f = LoadFontEx(
-      "recs/Daydream.ttf",
-      0.04 * GetRenderWidth(), 0, 0
+      ctx->title_font.path,
+      ctx->title_font.size * GetRenderWidth(), 0, 0
     );
   }
 
