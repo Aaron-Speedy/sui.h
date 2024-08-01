@@ -92,7 +92,7 @@ bool sui_do_button(SUI_Ctx *ctx, char *t, float x, float y, float w, float h) {
     button_color.b *= factor;
   }
 
-  DrawRectangleRec(sui_rect_to_rectangle(rect), button_color);
+  DrawRectangleRounded(sui_rect_to_rectangle(rect), 0.1, 20, button_color);
 
   sui_ctx_push(ctx, rect);
   {
@@ -120,7 +120,7 @@ void sui_do_panel(SUI_Ctx *ctx, float x, float y, float w, float h) {
   sui_ctx_push(ctx, rect);
 
   Color panel_color = { 20, 62, 128, 255, };
-  DrawRectangleRec(sui_rect_to_rectangle(rect), panel_color);
+  DrawRectangleRounded(sui_rect_to_rectangle(rect), 0.1, 20, panel_color);
 
   ctx->last_do = sui_abs_to_rel(ctx, rect);
 }
