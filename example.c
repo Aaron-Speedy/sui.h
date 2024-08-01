@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 
 #define SUI_IMPL
 #include "sui.h"
