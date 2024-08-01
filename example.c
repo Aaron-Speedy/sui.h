@@ -23,28 +23,9 @@ int main() {
 
   SUI_Ctx ctx = {0};
   sui_ctx_init(&ctx);
-  sui_ctx_push(&ctx, (SUI_Rect){0});
 
-  bool initial = true;
   while (!WindowShouldClose()) {
-    if (IsWindowResized() || initial) {
-      ctx.items[0].size.x = GetRenderWidth();
-      ctx.items[0].size.y = GetRenderHeight();
-
-      UnloadFont(ctx.reg_font);
-      UnloadFont(ctx.title_font);
-
-      ctx.reg_font = LoadFontEx(
-        "recs/Daydream.ttf", 
-        0.03 * GetRenderWidth(), 0, 0
-      ),
-      ctx.title_font = LoadFontEx(
-        "recs/Daydream.ttf",
-        0.04 * GetRenderWidth(), 0, 0
-      ),
-
-      initial = false;
-    }
+    sui_ctx_update(&ctx);
 
     BeginDrawing();
     ClearBackground(WHITE);

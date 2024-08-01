@@ -17,19 +17,26 @@ typedef struct {
 } SUI_Rect;
 
 typedef struct {
+  Font f;
+  char *path;
+  float size; // size * GetRenderWidth(). fontSize from LoadFontEx(...)
+} SUI_Font;
+
+typedef struct {
   int count, cap;
   SUI_Rect *items;
   SUI_Rect last_do;
-  Font reg_font;
-  Font title_font;
+  SUI_Font reg_font;
+  SUI_Font title_font;
 } SUI_Ctx;
 
-void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, Font f, Color c);
+void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, SUI_Font f, Color c);
 bool sui_do_button(SUI_Ctx *ctx, char *t, float x, float y, float w, float h);
 bool sui_do_button_next(SUI_Ctx *ctx, char *t, float spacing, float w, float h);
 void sui_do_panel(SUI_Ctx *ctx, float x, float y, float w, float h);
 
 void sui_ctx_init(SUI_Ctx *ctx);
+void sui_ctx_update(SUI_Ctx *ctx);
 void sui_ctx_push(SUI_Ctx *ctx, SUI_Rect rect);
 SUI_Rect *sui_ctx_pop(SUI_Ctx *ctx);
 SUI_Rect *sui_ctx_last(SUI_Ctx *ctx);
@@ -44,11 +51,11 @@ bool sui_mouse_in_rec(SUI_Rect rect);
 
 #ifdef SUI_IMPL
 
-void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, Font f, Color c) {
-  SUI_Rect rect = { .size = MeasureTextEx(f, t, f.baseSize, 1) };
+void sui_do_text(SUI_Ctx *ctx, char *t, float x, float y, SUI_Font f, Color c) {
+  SUI_Rect rect = { .size = MeasureTextEx(f.f, t, f.f.baseSize, 1) };
   rect.pos = sui_place_rel(ctx, x, y, rect.size);
 
-  DrawTextEx(f, t, rect.pos, f.baseSize, 1, c);
+  DrawTextEx(f.f, t, rect.pos, f.f.baseSize, 1, c);
 
   ctx->last_do = sui_abs_to_rel(ctx, rect);
 }
@@ -104,6 +111,28 @@ void sui_ctx_init(SUI_Ctx *ctx) {
 
   if (ctx->cap <= 0) ctx->cap = 256;
   ctx->items = malloc(ctx->cap * sizeof(ctx->items[0]));
+
+  sui_ctx_push(ctx, (SUI_Rect){0});
+  sui_ctx_update(ctx);
+}
+
+void sui_ctx_update(SUI_Ctx *ctx) {
+  if (IsWindowResized()) {
+    ctx->items[0].size.x = GetRenderWidth();
+    ctx->items[0].size.y = GetRenderHeight();
+
+    UnloadFont(ctx->reg_font.f);
+    UnloadFont(ctx->title_font.f);
+
+    ctx->reg_font.f = LoadFontEx(
+      "recs/Daydream.ttf", 
+      0.03 * GetRenderWidth(), 0, 0
+    ),
+    ctx->title_font.f = LoadFontEx(
+      "recs/Daydream.ttf",
+      0.04 * GetRenderWidth(), 0, 0
+    );
+  }
 }
 
 void sui_ctx_push(SUI_Ctx *ctx, SUI_Rect rect) {
