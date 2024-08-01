@@ -26,7 +26,7 @@ int main() {
     ClearBackground(WHITE);
 
     sui_do_panel(&ctx, 0.5, 0.5, 0.8, 0.5);
-      sui_do_text(&ctx, "Epicness", 0.5, 0.2, ctx.title_font, WHITE);
+      sui_do_text(&ctx, "Example Menu", 0.5, 0.2, ctx.title_font, WHITE);
       sui_do_button(&ctx, "No op", 0.5, 0.5, 0.4, 0.2);
       if (sui_do_button_next(&ctx, "Exit", 0.02, 0.4, 0.2)) exit(0);
     sui_ctx_pop(&ctx);
